@@ -1,40 +1,61 @@
 package com.vvstepanov.stubservice;
 
-import com.vvstepanov.stubservice.dto.CreateUserResponse;
-import com.vvstepanov.stubservice.dto.UserRequest;
-import com.vvstepanov.stubservice.dto.UserResponse;
+import com.vvstepanov.stubservice.config.StubProperties;
+import com.vvstepanov.stubservice.dto.GetUserDto;
+import com.vvstepanov.stubservice.dto.PostUserDto;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api")
 public class AuthController {
 
-    @GetMapping("/user")
-    public UserResponse getUser() {
+    private final StubProperties stubProperties;
+    private final Random random = new Random();
+
+    @Autowired
+    public AuthController(StubProperties stubProperties) {
+        this.stubProperties = stubProperties;
+    }
+
+    public void addRandomDelay() {
+        int minDelay = stubProperties.getDelayMin();
+        int maxDelay = stubProperties.getDelayMax();
+
+        int delay = random.nextInt(maxDelay - minDelay + 1) + minDelay;
+
         try {
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.MILLISECONDS.sleep(delay);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
 
-        return new UserResponse("Login1", "ok");
+    @GetMapping("/user")
+    public ResponseEntity<GetUserDto> getUser() {
+        addRandomDelay();
+
+        GetUserDto userDto = new GetUserDto("Login1", "ok");
+
+        return ResponseEntity.ok(userDto);
     }
 
     @PostMapping("/user")
-    public CreateUserResponse createUser(@RequestBody UserRequest userRequest) {
-        try {
-            TimeUnit.SECONDS.sleep(2);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+    public ResponseEntity<PostUserDto> createUser(@RequestBody PostUserDto userDto)  throws InterruptedException {
+        addRandomDelay();
 
         String currentDate = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        return new CreateUserResponse(userRequest.getLogin(), userRequest.getPassword(), currentDate);
+        userDto.setDate(currentDate);
+
+        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
 }
