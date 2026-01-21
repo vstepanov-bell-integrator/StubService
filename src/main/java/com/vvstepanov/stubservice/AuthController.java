@@ -3,6 +3,7 @@ package com.vvstepanov.stubservice;
 import com.vvstepanov.stubservice.config.StubProperties;
 import com.vvstepanov.stubservice.dto.GetUserDto;
 import com.vvstepanov.stubservice.dto.PostUserDto;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +49,7 @@ public class AuthController {
     }
 
     @PostMapping("/user")
-    public ResponseEntity<PostUserDto> createUser(@RequestBody PostUserDto userDto)  throws InterruptedException {
+    public ResponseEntity<PostUserDto> createUser(@Valid @RequestBody PostUserDto userDto) {
         addRandomDelay();
 
         String currentDate = LocalDateTime.now()
