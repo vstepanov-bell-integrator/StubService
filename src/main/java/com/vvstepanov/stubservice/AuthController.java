@@ -62,6 +62,12 @@ public class AuthController {
 
         userDto.setDate(currentDate);
 
+        String timeZoneName = java.util.TimeZone.getDefault().getDisplayName();
+        String timeZoneId = java.time.ZoneId.systemDefault().toString();
+
+        userDto.setTimeZoneName(timeZoneName);
+        userDto.setTimeZoneId(timeZoneId);
+
         return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
 }

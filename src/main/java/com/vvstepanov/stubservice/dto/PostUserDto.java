@@ -16,4 +16,7 @@ public class PostUserDto {
     @Size(min = 6, max = 30, message = "Длина пароля должна быть от 6 до 30 символов")
     private String password;
     private String date;
+
+    private String timeZoneName;
+    private String timeZoneId;
 }
