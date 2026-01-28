@@ -54,19 +54,13 @@ public class AuthController {
     public ResponseEntity<PostUserDto> createUser(@Valid @RequestBody PostUserDto userDto) {
         addRandomDelay();
 
-        ZoneId myZone = ZoneId.of("America/New_York");
+        ZoneId myZone = ZoneId.of("Europe/Moscow");
         ZonedDateTime zonedDateTime = ZonedDateTime.now(myZone);
 
         String currentDate = zonedDateTime
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         userDto.setDate(currentDate);
-
-        String timeZoneName = java.util.TimeZone.getDefault().getDisplayName();
-        String timeZoneId = java.time.ZoneId.systemDefault().toString();
-
-        userDto.setTimeZoneName(timeZoneName);
-        userDto.setTimeZoneId(timeZoneId);
 
         return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
