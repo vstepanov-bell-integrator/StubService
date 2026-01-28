@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +54,10 @@ public class AuthController {
     public ResponseEntity<PostUserDto> createUser(@Valid @RequestBody PostUserDto userDto) {
         addRandomDelay();
 
-        String currentDate = LocalDateTime.now()
+        ZoneId myZone = ZoneId.of("America/New_York");
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(myZone);
+
+        String currentDate = zonedDateTime
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         userDto.setDate(currentDate);
