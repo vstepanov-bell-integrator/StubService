@@ -1,18 +1,14 @@
 package com.vvstepanov.stubservice;
 
 import com.vvstepanov.stubservice.config.StubProperties;
-import com.vvstepanov.stubservice.dto.GetUserDto;
-import com.vvstepanov.stubservice.dto.PostUserDto;
+import com.vvstepanov.stubservice.data.DatabaseWorker;
+import com.vvstepanov.stubservice.data.User;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -42,26 +38,28 @@ public class AuthController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<GetUserDto> getUser() {
+    public ResponseEntity<User> getUser(@RequestParam("login") String login) {
         addRandomDelay();
 
-        GetUserDto userDto = new GetUserDto("Login1", "ok");
+        DatabaseWorker worker = new DatabaseWorker();
 
-        return ResponseEntity.ok(userDto);
+        User user = worker.selectUser(login);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/user")
-    public ResponseEntity<PostUserDto> createUser(@Valid @RequestBody PostUserDto userDto) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         addRandomDelay();
 
-        ZoneId myZone = ZoneId.of("Europe/Moscow");
-        ZonedDateTime zonedDateTime = ZonedDateTime.now(myZone);
+        DatabaseWorker worker = new DatabaseWorker();
 
-        String currentDate = zonedDateTime
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        worker.insertUser(user);
 
-        userDto.setDate(currentDate);
-
-        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 }
