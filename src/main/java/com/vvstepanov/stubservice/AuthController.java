@@ -17,11 +17,13 @@ import java.util.concurrent.TimeUnit;
 public class AuthController {
 
     private final StubProperties stubProperties;
+    private final DatabaseWorker worker;
     private final Random random = new Random();
 
     @Autowired
-    public AuthController(StubProperties stubProperties) {
+    public AuthController(StubProperties stubProperties, DatabaseWorker worker) {
         this.stubProperties = stubProperties;
+        this.worker = worker;
     }
 
     public void addRandomDelay() {
@@ -41,13 +43,7 @@ public class AuthController {
     public ResponseEntity<User> getUser(@RequestParam("login") String login) {
         addRandomDelay();
 
-        DatabaseWorker worker = new DatabaseWorker();
-
         User user = worker.selectUser(login);
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
 
         return ResponseEntity.ok(user);
     }
@@ -55,8 +51,6 @@ public class AuthController {
     @PostMapping("/user")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         addRandomDelay();
-
-        DatabaseWorker worker = new DatabaseWorker();
 
         worker.insertUser(user);
 

@@ -1,14 +1,38 @@
 package com.vvstepanov.stubservice.data;
 
+import com.vvstepanov.stubservice.exception.UserNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
 import java.sql.*;
 
+@Component
+@ConfigurationProperties(prefix = "db.params")
 public class DatabaseWorker {
-    private static final String JDBC_URL = "jdbc:postgresql://192.168.0.13:5432/mydatabase";
-    private static final String USERNAME = "myuser";
-    private static final String PASSWORD = "mypassword";
+    @Value("${db.params.prefix:jdbc:postgresql}")
+    private String prefix;
 
-    public User selectUser(String login) {
-        try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+    @Value("${db.params.host}")
+    private String host;
+
+    @Value("${db.params.dbname}")
+    private String dbName;
+
+    @Value("${db.params.username}")
+    private String username;
+
+    @Value("${db.params.password}")
+    private String password;
+
+    private String getJdbcUrl() {
+        return prefix + "://" + host + "/" + dbName;
+    }
+
+    public User selectUser(String login) throws UserNotFoundException {
+        String jdbcUrl = getJdbcUrl();
+
+        try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
              Statement statement = connection.createStatement();) {
 
             String selectSql = "SELECT t1.*, t2.email\n" +
@@ -22,19 +46,19 @@ public class DatabaseWorker {
                         resultSet.getString("password"),
                         resultSet.getString("email"),
                         resultSet.getString("registration_date"));
+            } else {
+                throw new UserNotFoundException("User with login " + login + " not found");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage());
         }
-
-        return null;
     }
 
     public int insertUser(User user) {
         String insertLoginAndEmail = "INSERT INTO user_credentials (login, password) values (?, ?);\n" +
                 "INSERT INTO user_emails (login, email) values (?, ?);";
 
-        try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+        try (Connection connection = DriverManager.getConnection(getJdbcUrl(), username, password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertLoginAndEmail)) {
 
             preparedStatement.setString(1, user.getLogin());
